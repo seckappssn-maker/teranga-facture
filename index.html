@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<script>/* terangaapps.com : passe en https dès que le certificat est prêt */(function(){try{var l=location;if(l.protocol==="http:"&&/(^|\.)terangaapps\.com$/.test(l.hostname)){var u="https://"+l.host+l.pathname+l.search+l.hash;fetch("https://"+l.host+"/CNAME",{mode:"no-cors",cache:"no-store"}).then(function(){l.replace(u)}).catch(function(){})}}catch(e){}})();</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Teranga Facture</title>
+<meta name="description" content="La facture de votre quincaillerie sur le téléphone et l'ordinateur : articles, total en lettres, avance et reste, PDF et WhatsApp. Vos factures restent en ligne, même si vous changez de téléphone.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Teranga Facture – la facture de votre quincaillerie">
+<meta property="og:description" content="Fini le carnet de factures : faites la facture sur le téléphone ou l'ordinateur, envoyez-la au client en PDF sur WhatsApp. Essai gratuit.">
+<meta property="og:url" content="https://seckappssn-maker.github.io/teranga-facture/">
+<meta property="og:image" content="https://seckappssn-maker.github.io/teranga-facture/copertina.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#1f6fd1">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Teranga Facture">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js" onerror="var x=document.createElement('script');x.src='https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js';document.head.appendChild(x)"></script>
+<style>
+:root{--blue:#1f6fd1;--blue2:#e8f1fc;--ink:#14213d;--muted:#6b7280;--bg:#f4f6fa;--card:#fff;--line:#d9e3f2;--red:#c62828;--green:#1b8a4b;--orange:#b45309}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:-apple-system,system-ui,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);padding-bottom:90px}
+header{background:var(--blue);color:#fff;padding:calc(14px + env(safe-area-inset-top,0px)) 16px 10px;position:sticky;top:0;z-index:5}
+.hrow{display:flex;align-items:center;gap:10px}
+.hbrand{flex:1;min-width:0}
+header h1{margin:0;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header small{opacity:.85;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#sync{flex:none;font-size:12px;font-weight:700;background:rgba(255,255,255,.18);border-radius:20px;padding:4px 10px;white-space:nowrap}
+#sync.wait{background:#fff4e5;color:#8a4b00}#sync.off{background:rgba(0,0,0,.25)}
+nav{display:flex;gap:6px;margin-top:10px}
+nav button{flex:1;border:0;border-radius:10px;padding:9px 4px;font-size:14px;font-weight:600;background:rgba(255,255,255,.18);color:#fff;cursor:pointer}
+nav button.on{background:#fff;color:var(--blue)}
+main{padding:14px 16px;max-width:720px;margin:0 auto}
+.card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.ctitle{font-weight:800;margin-bottom:8px}
+label{display:block;font-size:12px;color:var(--muted);margin:8px 0 4px;font-weight:600}
+input,textarea,select{width:100%;font-size:16px;padding:10px 11px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font-family:inherit}
+input:focus{outline:2px solid var(--blue);outline-offset:-1px}
+.row{display:flex;gap:8px}.row>*{flex:1}
+.lhead{display:none}
+.line{border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px;background:#fbfdff;display:grid;grid-template-columns:70px 1fr 1fr 36px;grid-template-areas:"q d d x" "pu pu tot tot";gap:6px 8px;align-items:center}
+.line .q{grid-area:q}.line .d{grid-area:d}.line .pu{grid-area:pu}.line .x{grid-area:x}
+.line .tot{grid-area:tot;font-weight:700;text-align:right;color:var(--blue);white-space:nowrap}
+.x{border:0;background:#fdecec;color:var(--red);border-radius:8px;width:36px;height:40px;font-size:18px;cursor:pointer}
+.btn{display:block;width:100%;border:0;border-radius:12px;padding:13px;font-size:16px;font-weight:700;margin-top:8px;background:var(--blue);color:#fff;cursor:pointer;text-align:center;text-decoration:none;font-family:inherit}
+.btn.light{background:var(--blue2);color:var(--blue)}
+.btn.green{background:#25d366;color:#fff}
+.btn.red{background:#fdecec;color:var(--red)}
+.btn:disabled{opacity:.6}
+.linkbtn{display:block;margin:12px auto 0;border:0;background:none;color:var(--blue);font-weight:700;font-size:14px;cursor:pointer;text-decoration:underline}
+.grand{display:flex;justify-content:space-between;font-size:20px;font-weight:800;margin:6px 0}
+.words{font-size:13px;color:var(--muted);font-style:italic}
+.item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px;background:#fff;border-radius:12px;margin-bottom:8px;box-shadow:0 1px 2px rgba(0,0,0,.05);cursor:pointer}
+.item b{display:block}.item small{color:var(--muted)}
+.amt{font-weight:800;text-align:right;white-space:nowrap}
+.tag{font-size:11px;padding:2px 7px;border-radius:20px;font-weight:700}
+.paid{background:#e5f6ec;color:var(--green)}.due{background:#fdecec;color:var(--red)}
+.hidden{display:none!important}
+.stats{display:flex;gap:8px;margin-bottom:12px}.stats div{flex:1;background:#fff;border-radius:12px;padding:10px;text-align:center}
+.stats b{display:block;font-size:16px}.stats small{color:var(--muted);font-size:11px}
+.hint{font-size:13px;color:var(--muted);margin-top:8px;line-height:1.4}
+.err{color:var(--red);font-weight:600;font-size:14px;margin-top:8px;min-height:1em}
+#toast{position:fixed;left:16px;right:16px;bottom:24px;max-width:520px;margin:0 auto;background:#14213d;color:#fff;padding:14px 16px;border-radius:12px;font-weight:600;text-align:center;z-index:60;opacity:0;transform:translateY(20px);transition:.25s;pointer-events:none}
+#toast.on{opacity:1;transform:none}
+#toast.err{background:var(--red)}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+#modal .box{background:#fff;width:100%;max-width:520px;border-radius:18px 18px 0 0;padding:18px 16px calc(26px + env(safe-area-inset-bottom,0px));max-height:90vh;overflow:auto}
+#modal h3{margin:0 0 6px;font-size:17px}
+#modal p{margin:0 0 6px;color:var(--muted);font-size:14px;white-space:pre-line}
+#bar{padding:10px 14px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:10px;justify-content:space-between}
+#bar.demo{background:#fff4e5;color:#8a4b00}#bar.bad{background:#fdecec;color:var(--red)}#bar.info{background:var(--blue2);color:var(--blue)}
+#bar button{flex:none;border:0;border-radius:8px;padding:7px 10px;font-weight:700;font-size:13px;background:#fff;color:inherit;cursor:pointer}
+.abo-st{font-size:18px;font-weight:800;margin:4px 0}
+.abo-st.ok{color:var(--green)}.abo-st.warn{color:var(--orange)}.abo-st.bad{color:var(--red)}
+.pay{background:var(--blue2);border-radius:12px;padding:12px;margin-top:10px;font-size:14px;line-height:1.45}
+.pay b.big{font-size:20px;display:block;color:var(--blue);letter-spacing:.5px}
+/* ===== Accueil / connexion ===== */
+.acc{padding-top:6px}
+.accHero{text-align:center;padding:10px 6px 16px}
+.accHero img{width:76px;height:76px;border-radius:18px;box-shadow:0 6px 18px rgba(31,111,209,.35)}
+.accHero h2{margin:10px 0 6px;font-size:26px;color:var(--blue)}
+.accHero p{margin:0 auto;max-width:440px;color:var(--muted);font-size:15px;line-height:1.45}
+.accPts{list-style:none;padding:0;margin:14px auto 0;max-width:420px;text-align:left;font-size:14px;line-height:1.5}
+.accPts li{padding:3px 0}
+.seg{display:flex;background:var(--blue2);border-radius:12px;padding:4px;gap:4px;margin-bottom:4px}
+.seg button{flex:1;border:0;border-radius:9px;padding:10px;font-weight:700;font-size:15px;background:none;color:var(--blue);cursor:pointer}
+.seg button.on{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.loading{text-align:center;color:var(--muted);padding:60px 0;font-weight:600}
+/* ===== Facture papier ===== */
+.live{display:none}
+#sheetWrap{overflow-x:auto}
+.sheet{background:#fff;width:100%;max-width:640px;margin:0 auto;padding:18px 16px;color:#1a3f8f;font-family:Arial,Helvetica,sans-serif;border:1px solid #dfe7f5}
+.sh-name{font-size:21px;font-weight:900;text-align:center;letter-spacing:.3px;line-height:1.15}
+.sh-sub{display:inline-block;background:#1f6fd1;color:#fff;border-radius:18px;padding:3px 16px;font-weight:800;font-size:15px;margin:6px 0}
+.sh-c{text-align:center}
+.sh-line{font-size:13px;margin:2px 0}
+.sh-meta{display:flex;justify-content:space-between;align-items:flex-end;margin-top:8px;font-size:13px}
+.sh-fact{font-size:18px;font-weight:900}
+.sh-num{color:#c62828;font-weight:800;font-size:16px}
+.sh-client{border-bottom:1px dotted #1a3f8f;padding:6px 0 2px;margin:10px 0 8px;font-size:15px;color:#111}
+table.t{width:100%;border-collapse:collapse;font-size:13px}
+table.t th{background:#e8f1fc;border:1px solid #1f6fd1;padding:5px 4px;font-size:11px;text-transform:uppercase}
+table.t td{border:1px solid #9dbbe6;padding:5px 4px;color:#111}
+table.t td.n{text-align:right;white-space:nowrap}
+table.t td.c{text-align:center}
+table.t tr.total td{font-weight:900;border:1.5px solid #1f6fd1;color:#1a3f8f;font-size:14px}
+.sh-words{margin-top:10px;font-size:12.5px;color:#111}
+.sh-pay{margin-top:6px;font-size:13px;color:#111}
+.sh-sign{display:flex;justify-content:space-between;margin-top:28px;font-size:12px}
+.sh-empty{color:#9aa7bd;font-style:italic}
+/* ===== Ordinateur ===== */
+@media (min-width:980px){
+  body{padding-bottom:30px}
+  header{padding:12px 28px;display:flex;align-items:center;gap:24px}
+  header .hrow{flex:1;min-width:0}
+  header h1{font-size:20px}
+  nav{margin-top:0;flex:none}
+  nav button{flex:none;padding:10px 20px;font-size:15px}
+  main{max-width:1260px;padding:22px 28px}
+  #bar{padding:10px 28px;font-size:14px}
+  .live{position:sticky;top:96px}
+  .live .ltitle{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:0 0 8px 2px}
+  .live .sheet{box-shadow:0 4px 18px rgba(20,33,61,.10);border-radius:4px}
+  .lhead{display:grid;grid-template-columns:62px 1fr 108px 100px 36px;gap:8px;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;padding:0 10px 4px}
+  .line{grid-template-columns:62px 1fr 108px 100px 36px;grid-template-areas:"q d pu tot x";padding:6px 10px;margin-bottom:6px}
+  .line input{padding:8px 10px;font-size:15px}
+  .x{height:36px}
+  .pvgrid{display:grid;grid-template-columns:1fr 320px;gap:24px;align-items:start}
+  .pvbtns{position:sticky;top:96px}
+  .pvbtns .btn:first-child{margin-top:0}
+  #viewPreview .sheet{box-shadow:0 4px 18px rgba(20,33,61,.10);max-width:760px}
+  #list{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:10px}
+  #list .item{margin-bottom:0}
+  #list>p{grid-column:1/-1}
+  .setgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+  .setgrid .card{margin-bottom:14px}
+  .acc{display:grid;grid-template-columns:1fr 440px;gap:48px;align-items:center;min-height:calc(100vh - 140px);max-width:1080px;margin:0 auto}
+  .accHero{text-align:left}
+  .accHero img{width:96px;height:96px}
+  .accHero h2{font-size:40px}
+  .accHero p{margin:0;font-size:17px}
+  .accPts{margin:18px 0 0;font-size:16px}
+  #modal{align-items:center}
+  #modal .box{border-radius:18px}
+  #toast{bottom:30px}
+}
+@media (min-width:1100px){
+  .edgrid{display:grid;grid-template-columns:minmax(560px,1fr) minmax(440px,560px);gap:22px;align-items:start}
+  .live{display:block}
+}
+@media print{
+  body{background:#fff;padding:0}
+  header,#bar,#toast,#modal,main>*:not(#viewPreview),.pvbtns{display:none!important}
+  #viewPreview{display:block!important}
+  .pvgrid{display:block}
+  main{padding:0;max-width:none}
+  .sheet{border:0;max-width:none!important;box-shadow:none!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  @page{size:A4;margin:10mm}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="hrow">
+    <div class="hbrand"><h1 id="hName">Teranga Facture</h1><small id="hSub"></small></div>
+    <span id="sync" class="hidden"></span>
+  </div>
+  <nav id="nav" class="hidden">
+    <button data-v="edit" class="on">➕ Facture</button>
+    <button data-v="list">📋 Liste</button>
+    <button data-v="settings">⚙️ Réglages</button>
+  </nav>
+</header>
+<div id="bar" class="hidden"></div>
+<div id="toast"></div>
+<div id="modal" class="hidden"><div class="box"><h3 id="mTitle"></h3><p id="mText"></p><div id="mBody"></div><div id="mBtns"></div></div></div>
+
+<main>
+<!-- ===== Connexion ===== -->
+<section id="viewAccount">
+  <div class="loading" id="accLoading">Chargement…</div>
+  <div class="acc hidden" id="accBox">
+    <div class="accHero">
+      <img src="icon-192.png" alt="">
+      <h2>Teranga Facture</h2>
+      <p>La facture de votre quincaillerie, sur le téléphone et sur l'ordinateur.</p>
+      <ul class="accPts">
+        <li>🧾 Facture comme sur le carnet : quantité, désignation, prix, total en lettres</li>
+        <li>💬 Envoyée au client en PDF ou sur WhatsApp</li>
+        <li>💰 Avance et reste à payer, liste des clients qui doivent</li>
+        <li>☁️ Factures gardées en ligne, même si vous changez de téléphone</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="seg"><button data-a="login" class="on">Se connecter</button><button data-a="signup">Créer un compte</button></div>
+      <form id="auForm" autocomplete="on">
+        <div id="auNomBox" class="hidden"><label>Nom de la quincaillerie</label><input id="auNom" placeholder="Ex : Quincaillerie Touba" autocomplete="organization"></div>
+        <label>Numéro de téléphone</label><input id="auTel" type="tel" inputmode="tel" autocomplete="username" placeholder="77 000 00 00">
+        <label>Mot de passe</label><input id="auPw" type="password" autocomplete="current-password" placeholder="6 caractères minimum">
+        <div id="auPw2Box" class="hidden"><label>Répéter le mot de passe</label><input id="auPw2" type="password" autocomplete="new-password"></div>
+        <div id="auInfo" class="hint hidden"></div>
+        <button class="btn" id="auBtn" type="submit">Se connecter</button>
+        <div id="auMsg" class="err"></div>
+      </form>
+      <button class="btn light" id="demoBtn" type="button">👀 Voir la démo (sans compte)</button>
+      <button class="linkbtn" id="forgot" type="button">Mot de passe oublié ?</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Éditeur ===== -->
+<section id="viewEdit" class="hidden">
+ <div class="edgrid">
+  <div>
+  <div class="card">
+    <div class="row">
+      <div><label>N° facture</label><input id="fNum" inputmode="numeric"></div>
+      <div><label>Date</label><input id="fDate" type="date"></div>
+    </div>
+    <label>Client (M.)</label><input id="fClient" placeholder="Nom du client">
+    <label>Téléphone client</label><input id="fTel" type="tel" placeholder="77 000 00 00">
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Articles</div>
+    <div class="lhead"><span>Qté</span><span>Désignation</span><span>Prix unitaire</span><span style="text-align:right">Total</span><span></span></div>
+    <div id="lines"></div>
+    <button class="btn light" id="addLine">+ Ajouter un article</button>
+  </div>
+
+  <div class="card">
+    <div class="grand"><span>TOTAL</span><span id="gTotal">0 F</span></div>
+    <div class="words" id="gWords"></div>
+    <div class="row" style="margin-top:8px">
+      <div><label>Avance payée</label><input id="fAvance" inputmode="numeric" placeholder="0"></div>
+      <div><label>Reste à payer</label><input id="fReste" disabled></div>
+    </div>
+    <button class="btn" id="save">💾 Enregistrer</button>
+    <button class="btn light" id="preview">🧾 Voir / Imprimer / Envoyer</button>
+    <button class="btn light" id="newBtn">🆕 Nouvelle facture vide</button>
+  </div>
+  </div>
+  <aside class="live"><div class="ltitle">Aperçu de la facture</div><div class="sheet" id="sheetLive"></div></aside>
+ </div>
+</section>
+
+<!-- ===== Aperçu ===== -->
+<section id="viewPreview" class="hidden">
+ <div class="pvgrid">
+  <div id="sheetWrap"><div class="sheet" id="sheet"></div></div>
+  <div class="pvbtns">
+    <button class="btn" id="pdf">📄 PDF — enregistrer / envoyer</button>
+    <button class="btn green" id="shareImg">📤 Envoyer la facture (image)</button>
+    <button class="btn green" id="wa">💬 Envoyer sur WhatsApp (texte)</button>
+    <button class="btn light" id="printBtn">🖨️ Imprimer</button>
+    <button class="btn light" id="back">✏️ Modifier</button>
+  </div>
+ </div>
+</section>
+
+<!-- ===== Liste ===== -->
+<section id="viewList" class="hidden">
+  <div class="stats">
+    <div><b id="sCount">0</b><small>Factures</small></div>
+    <div><b id="sTotal">0</b><small>Total vendu</small></div>
+    <div><b id="sDue">0</b><small>Reste dû</small></div>
+  </div>
+  <input id="search" placeholder="🔍 Chercher client, n°, téléphone…">
+  <div id="list" style="margin-top:10px"></div>
+</section>
+
+<!-- ===== Réglages ===== -->
+<section id="viewSettings" class="hidden">
+ <div class="setgrid">
+  <div>
+  <div class="card">
+    <div class="ctitle">En-tête de la facture</div>
+    <label>Nom de la quincaillerie</label><input id="sName" placeholder="Ex : QUINCAILLERIE TOUBA">
+    <label>Sous-titre (propriétaire, frères…)</label><input id="sSub" placeholder="Ex : DIOP & FRÈRES">
+    <label>Activité</label><input id="sAct" placeholder="Ex : Vente de tout matériel de construction">
+    <label>Téléphones</label><input id="sTel" placeholder="Ex : 77 000 00 00 - 76 000 00 00">
+    <label>Adresse</label><input id="sAdr" placeholder="Ex : Touba, marché Ocass">
+    <label>Prochain numéro de facture</label><input id="sNext" inputmode="numeric">
+    <div class="hint">Si vous aviez un carnet, mettez le numéro qui vient après la dernière facture du carnet.</div>
+    <button class="btn" id="saveSettings">Enregistrer les réglages</button>
+  </div>
+  </div>
+  <div>
+  <div class="card" id="aboCard"></div>
+  <div class="card">
+    <div class="ctitle">Sauvegarde</div>
+    <button class="btn light" id="exportBtn">⬇️ Exporter toutes les factures</button>
+    <label>Importer une sauvegarde (aussi celle de l'ancienne app Factures)</label><input type="file" id="importFile" accept=".json,application/json">
+  </div>
+  <div class="card" id="accCard"></div>
+  </div>
+ </div>
+</section>
+</main>
+
+<datalist id="articles"></datalist>
+
+<script>
+/* ===================== Réglages de l'app ===================== */
+const SUPA_URL='https://ncsjgmkrsvtwklfrdbgy.supabase.co',SUPA_KEY='sb_publishable_oDE4BbU6J3RTnce1Oo91cQ_hokWgh0U';
+const MAIL_DOM='@terangafacture.app',APP_NAME='Teranga Facture';
+const GRACE=3,SECK_WA='221778790006',SECK_PAY='77 879 00 06',PRIX_DEF=2000;
+const K_MODE='terangaFacture.mode',K_LAST='terangaFacture.last',K_DEMO='terangaFacture.demo';
+
+/* ===================== Outils ===================== */
+const $=id=>document.getElementById(id);
+const fmt=n=>(Math.round(n)||0).toLocaleString('fr-FR').replace(/ | /g,' ');
+const num=v=>parseFloat(String(v).replace(/\s/g,'').replace(',','.'))||0;
+const pad=n=>String(n).padStart(6,'0');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const frDate=s=>s?String(s).slice(0,10).split('-').reverse().join('/'):'';
+const total=inv=>inv.lines.reduce((a,l)=>a+num(l.q)*num(l.pu),0);
+const uid=()=>'f'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const daysBetween=(a,b)=>{const p=s=>{const[y,m,d]=String(s).slice(0,10).split('-').map(Number);return Date.UTC(y,m-1,d)};return Math.round((p(b)-p(a))/86400000)};
+const fTel=p=>{const d=String(p||'').replace(/\D/g,'');const m=d.match(/^221(\d\d)(\d{3})(\d\d)(\d\d)$/);return m?m.slice(1).join(' '):(p||'');};
+const isNet=e=>/fetch|network|Failed|Load failed|timeout|NetworkError|hors ligne/i.test(String(e&&e.message||e||''));
+const timeout=(p,ms)=>Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),ms))]);
+
+let toastT;
+function toast(msg,err){const t=$('toast');t.textContent=msg;t.className='on'+(err?' err':'');clearTimeout(toastT);toastT=setTimeout(()=>t.className='',3000);}
+function modal(title,text,buttons,html,cancel){const m=$('modal');$('mTitle').textContent=title;$('mText').textContent=text||'';$('mBody').innerHTML=html||'';
+  const b=$('mBtns');b.innerHTML='';
+  buttons.concat([{t:cancel||'Fermer',c:'light'}]).forEach(x=>{const el=document.createElement(x.href?'a':'button');el.className='btn '+(x.c||'');el.textContent=x.t;
+    if(x.href){el.href=x.href;el.target='_blank';el.rel='noopener';}
+    el.onclick=()=>{if(!x.keep)m.classList.add('hidden');x.f&&x.f();};b.appendChild(el);});
+  m.classList.remove('hidden');}
+function closeModal(){$('modal').classList.add('hidden');}
+$('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();});
+function ask(title,text,okText,f){modal(title,text,[{t:okText,c:'red',f}],'','Annuler');}
+
+/* ===================== État ===================== */
+let MODE='boot';          // boot | account | demo | app
+let SB=null,USER=null,LIC=null,ONLINE=navigator.onLine!==false;
+let S={settings:{name:'',sub:'',act:'',tel:'',adr:'',next:1},invoices:[]};
+let PEND={},OPV=0,LASTPULL='';
+let cur=null,VIEW='edit';
+
+const DEMO={
+  settings:{name:'QUINCAILLERIE TERANGA',sub:'DIOP & FRÈRES',act:'Vente de tout matériel de construction',tel:'77 000 00 00 - 76 000 00 00',adr:'Touba (exemple)',next:104},
+  invoices:[
+    {id:'demo103',num:103,date:'',client:'Modou Fall',tel:'',avance:50000,lines:[
+      {q:10,d:'Sac de ciment 50 kg',pu:4500},{q:4,d:'Barre de fer 10',pu:3750},{q:2,d:'Brouette',pu:22000},{q:1,d:'Pot de peinture 20 L',pu:18500}]},
+    {id:'demo102',num:102,date:'',client:'Awa Sarr',tel:'',avance:0,lines:[
+      {q:1,d:'Colle porte plastique',pu:7000},{q:5,d:'Niveau 60',pu:2000},{q:4,d:'Rouleau fil 1,5',pu:21500},
+      {q:20,d:'Mètre fil TH',pu:1000},{q:10,d:'Tuyau 25',pu:1700},{q:2,d:'Paquet prise',pu:6000},{q:50,d:'Boîte simple',pu:60},
+      {q:10,d:'Lampe 28',pu:1000},{q:5,d:'Tuyau PVC 110',pu:6500},{q:10,d:'Robinet 27',pu:1750},{q:5,d:'Coude PVC',pu:2750}]},
+    {id:'demo101',num:101,date:'',client:'Entreprise BTP Kébé',tel:'',avance:96000,lines:[
+      {q:20,d:'Sac de ciment 50 kg',pu:4500},{q:2,d:'Fil de fer noir',pu:3000}]}]};
+
+/* ===================== Mémoire sur l'appareil ===================== */
+const cacheKey=()=>MODE==='demo'?K_DEMO:'terangaFacture.u.'+(USER&&USER.id);
+function saveLocal(){try{localStorage.setItem(cacheKey(),JSON.stringify(MODE==='demo'?{S}:{S,PEND,LASTPULL,LIC}));}catch(e){}}
+function loadLocal(){let d=null;try{d=JSON.parse(localStorage.getItem(cacheKey())||'null');}catch(e){}
+  if(d&&d.S&&Array.isArray(d.S.invoices)){S=d.S;S.settings=Object.assign({name:'',sub:'',act:'',tel:'',adr:'',next:1},S.settings||{});}
+  else S={settings:{name:'',sub:'',act:'',tel:'',adr:'',next:1},invoices:[]};
+  PEND=(d&&d.PEND)||{};LASTPULL=(d&&d.LASTPULL)||'';if(MODE==='app'&&d&&d.LIC)LIC=d.LIC;
+  OPV=Object.values(PEND).reduce((a,o)=>Math.max(a,o.v||0),0);}
+
+/* ===================== Envoi en ligne ===================== */
+const pickSet=s=>({name:String(s.name||'').slice(0,120),sub:String(s.sub||'').slice(0,120),act:String(s.act||'').slice(0,160),tel:String(s.tel||'').slice(0,120),adr:String(s.adr||'').slice(0,160)});
+const invData=i=>({num:+i.num||0,date:i.date||'',client:i.client||'',tel:i.tel||'',avance:num(i.avance),lines:i.lines.map(l=>({q:l.q,d:l.d,pu:l.pu}))});
+function normInv(x){if(!x||typeof x!=='object')return null;const lines=Array.isArray(x.lines)?x.lines.filter(l=>l&&typeof l==='object').map(l=>({q:l.q??'',d:String(l.d??'').slice(0,200),pu:l.pu??''})).slice(0,300):[];
+  return{id:String(x.id||uid()).replace(/[^\w-]/g,'').slice(0,60)||uid(),num:parseInt(x.num)||0,date:/^\d{4}-\d\d-\d\d/.test(x.date||'')?String(x.date).slice(0,10):today(),
+    client:String(x.client||'').slice(0,160),tel:String(x.tel||'').slice(0,40),avance:num(x.avance),lines:lines.length?lines:[{q:1,d:'',pu:''}]};}
+function queue(col,id,data,del){if(MODE!=='app')return;PEND[col+':'+id]=del?{col,id,del:true,v:++OPV}:{col,id,data,v:++OPV};}
+let pushing=false,pushT=null;
+function schedulePush(ms){clearTimeout(pushT);pushT=setTimeout(push,ms==null?300:ms);}
+async function push(){if(MODE!=='app'||pushing)return;const ks=Object.keys(PEND);if(!ks.length||!SB){syncUI();return;}
+  if(LIC&&LIC.actif===false){syncUI();return;}
+  pushing=true;syncUI();
+  try{for(let i=0;i<ks.length;i+=200){const part=ks.slice(i,i+200).filter(k=>PEND[k]).map(k=>[k,PEND[k]]);if(!part.length)continue;
+      const ops=part.map(([k,o])=>o.del?{col:o.col,id:o.id,del:true}:{col:o.col,id:o.id,data:o.data});
+      const r=await timeout(SB.rpc('fact_put',{p_ops:ops}),30000);if(r.error)throw r.error;
+      part.forEach(([k,o])=>{if(PEND[k]&&PEND[k].v===o.v)delete PEND[k];});saveLocal();}
+    ONLINE=true;
+  }catch(e){if(/expir/i.test(String(e.message||''))){await loadCompte();}else if(isNet(e))ONLINE=false;else{ONLINE=true;console.warn(e);}}
+  pushing=false;syncUI();if(Object.keys(PEND).length&&ONLINE&&!(LIC&&LIC.actif===false))schedulePush(15000);}
+function sinceOf(ts){if(!ts)return'1970-01-01T00:00:00Z';const t=Date.parse(String(ts).slice(0,19)+'Z');return isNaN(t)?'1970-01-01T00:00:00Z':new Date(t-120000).toISOString();}
+let pulling=false;
+async function pull(){if(MODE!=='app'||!SB||pulling)return;pulling=true;
+  try{const since=sinceOf(LASTPULL);let from=0,max=LASTPULL,changed=false;
+    for(;;){const r=await timeout(SB.from('fact_rows').select('col,id,data,deleted,updated_at').gt('updated_at',since).order('updated_at',{ascending:true}).range(from,from+999),30000);
+      if(r.error)throw r.error;const rows=r.data||[];
+      rows.forEach(x=>{if(!max||x.updated_at>max)max=x.updated_at;if(PEND[x.col+':'+x.id])return;if(applyRow(x))changed=true;});
+      if(rows.length<1000)break;from+=1000;}
+    LASTPULL=max||LASTPULL;saveLocal();ONLINE=true;if(changed)refreshViews();
+  }catch(e){if(isNet(e))ONLINE=false;}
+  pulling=false;syncUI();}
+function applyRow(x){
+  if(x.col==='inv'){const i=S.invoices.findIndex(v=>v.id===x.id);
+    if(x.deleted){if(i>=0){S.invoices.splice(i,1);return true;}return false;}
+    const inv=normInv(Object.assign({},x.data,{id:x.id}));if(!inv)return false;
+    if(i>=0){if(JSON.stringify(S.invoices[i])===JSON.stringify(inv))return false;S.invoices[i]=inv;}else S.invoices.push(inv);
+    if(inv.num>=(+S.settings.next||1))S.settings.next=inv.num+1;return true;}
+  if(x.col==='set'&&x.id==='main'&&!x.deleted){const before=JSON.stringify(S.settings);S.settings=Object.assign({},S.settings,pickSet(x.data||{}));return JSON.stringify(S.settings)!==before;}
+  return false;}
+async function loadCompte(){if(!SB||MODE!=='app')return;
+  try{let r=await timeout(SB.rpc('fact_compte'),15000);if(r.error)throw r.error;
+    if(!r.data||!r.data.ok){r=await timeout(SB.rpc('fact_inscription',{p_set:{}}),15000);if(r.error)throw r.error;}
+    LIC=r.data;S.settings.next=Math.max(+S.settings.next||1,+LIC.num_next||1);saveLocal();ONLINE=true;
+  }catch(e){if(isNet(e))ONLINE=false;}
+  licUI();syncUI();}
+function syncUI(){const el=$('sync');if(MODE!=='app'){el.classList.add('hidden');return;}
+  const n=Object.keys(PEND).length;el.classList.remove('hidden','wait','off');
+  if(n){el.textContent='⏳ '+n+' à envoyer';el.classList.add('wait');el.title='Ces changements partent dès que internet marche.';}
+  else if(!ONLINE){el.textContent='📴 Hors ligne';el.classList.add('off');el.title='Vous pouvez continuer : tout sera envoyé au retour d\'internet.';}
+  else{el.textContent='☁️ En ligne';el.title='Toutes les factures sont enregistrées en ligne.';}}
+
+/* ===================== Abonnement ===================== */
+function licState(){if(MODE!=='app'||!LIC)return null;const t=LIC.today||today(),end=LIC.fin||LIC.trial_end||t,left=daysBetween(t,end);
+  const trial=!LIC.paid_until||String(LIC.trial_end)>=String(LIC.paid_until);
+  const blocked=LIC.actif===false||left<-GRACE;
+  return{left,end,trial,blocked,grace:!blocked&&left<0,price:+LIC.price||PRIX_DEF};}
+const canEdit=()=>{const L=licState();return!(L&&L.blocked);};
+function payMsg(){return 'Bonjour Seck Apps, je viens de payer l\'abonnement '+APP_NAME+'.\nNuméro du compte : '+((LIC&&LIC.phone)||'')+'\nQuincaillerie : '+(S.settings.name||'');}
+function aboHTML(){const L=licState();if(!L)return'';
+  const st=L.blocked?['bad','⛔ Abonnement expiré']:L.grace?['bad','⚠️ Expiré : l\'app se bloque dans '+(GRACE+L.left)+' jour(s)']:
+    [L.left<=5?'warn':'ok',(L.trial?'🎁 Essai gratuit':'✅ Abonnement actif')+' jusqu\'au '+frDate(L.end)];
+  return `<div class="ctitle">Mon abonnement</div><div class="abo-st ${st[0]}">${st[1]}</div>
+    ${!L.blocked&&!L.grace?`<div class="hint" style="margin-top:0">Encore ${L.left} jour(s).</div>`:''}
+    <div class="pay">Prix : <b>${fmt(L.price)} F par mois</b>.<br>Payez par <b>Wave</b> ou <b>Orange Money</b> au numéro Seck Apps :<b class="big">${SECK_PAY}</b>
+    Puis envoyez la capture du paiement sur WhatsApp : l'abonnement est activé dans la journée.</div>
+    <a class="btn green" target="_blank" rel="noopener" href="https://wa.me/${SECK_WA}?text=${encodeURIComponent(payMsg())}">💬 Envoyer le paiement sur WhatsApp</a>
+    <button class="btn light" data-act="checkAbo">🔄 J'ai payé : vérifier mon abonnement</button>`;}
+function aboModal(){const L=licState();modal(L&&L.blocked?'Abonnement expiré':'Mon abonnement',L&&L.blocked?'Vos factures restent visibles (et vous pouvez les envoyer), mais pour créer ou modifier une facture il faut renouveler l\'abonnement.':'',[],aboHTML().replace('<div class="ctitle">Mon abonnement</div>','').replace(/<div class="abo-st bad">⛔ Abonnement expiré<\/div>/,''));}
+async function checkAbo(){toast('Vérification…');await loadCompte();const L=licState();if(!ONLINE)return toast('Pas de connexion internet',true);
+  toast(L&&!L.blocked?(L.trial?'Essai gratuit':'Abonnement actif')+' jusqu\'au '+frDate(L.end)+' ✅':'Pas encore activé : réessayez un peu plus tard',!(L&&!L.blocked));
+  if(L&&!L.blocked){closeModal();push();}}
+document.addEventListener('click',e=>{const a=e.target.closest('[data-act]');if(!a)return;const k=a.dataset.act;
+  if(k==='checkAbo')checkAbo();else if(k==='abo')aboModal();else if(k==='signupFromDemo')exitDemo(true);else if(k==='goSettings')show('settings');
+  else if(k==='logout')logout();else if(k==='delAcc')delAccount();else if(k==='exitDemo')exitDemo(false);});
+function licUI(){const b=$('bar');b.className='hidden';b.innerHTML='';
+  if(MODE==='demo'){b.className='demo';b.innerHTML='<span>👀 Démo : les factures restent seulement sur cet appareil.</span><button data-act="signupFromDemo">Créer mon compte</button>';}
+  else if(MODE==='app'){const L=licState();
+    if(L&&L.blocked){b.className='bad';b.innerHTML='<span>⛔ Abonnement expiré : vous ne pouvez plus créer de factures.</span><button data-act="abo">Renouveler</button>';}
+    else if(L&&(L.grace||L.left<=5)){b.className='bad';b.innerHTML='<span>⏰ '+(L.grace?'Abonnement expiré : blocage dans '+(GRACE+L.left)+' jour(s).':(L.trial?'Essai gratuit':'Abonnement')+' : encore '+L.left+' jour(s).')+'</span><button data-act="abo">Payer</button>';}
+    else if(!String(S.settings.name||'').trim()){b.className='info';b.innerHTML='<span>✏️ Écrivez le nom de votre quincaillerie pour l\'en-tête des factures.</span><button data-act="goSettings">Réglages</button>';}}
+  if(!$('viewSettings').classList.contains('hidden'))renderAccCards();}
+
+/* ===================== Nombre en lettres ===================== */
+const U=['zéro','un','deux','trois','quatre','cinq','six','sept','huit','neuf','dix','onze','douze','treize','quatorze','quinze','seize'];
+const T=['','dix','vingt','trente','quarante','cinquante','soixante'];
+function b100(n){if(n<17)return U[n];if(n<20)return'dix-'+U[n-10];const t=Math.floor(n/10),u=n%10;
+  if(t===7)return n===71?'soixante-et-onze':'soixante-'+b100(n-60);
+  if(t===8)return u?'quatre-vingt-'+U[u]:'quatre-vingts';
+  if(t===9)return'quatre-vingt-'+b100(n-80);
+  if(!u)return T[t];return T[t]+(u===1?'-et-un':'-'+U[u]);}
+function b1000(n){const h=Math.floor(n/100),r=n%100;let s='';if(h)s=h===1?'cent':U[h]+'-cent'+(r===0?'s':'');if(r)s+=(s?'-':'')+b100(r);return s;}
+function words(n){n=Math.round(n);if(!n)return'zéro';const g=Math.floor(n/1e9),m=Math.floor(n%1e9/1e6),k=Math.floor(n%1e6/1000),r=n%1000,p=[];
+  if(g)p.push(b1000(g)+(g>1?'-milliards':'-milliard'));
+  if(m)p.push(b1000(m)+(m>1?'-millions':'-million'));
+  if(k)p.push(k===1?'mille':b1000(k).replace(/cents$/,'cent').replace(/vingts$/,'vingt')+'-mille');
+  if(r)p.push(b1000(r));return p.join('-');}
+
+/* ===================== Navigation ===================== */
+function show(v){VIEW=v;['account','edit','list','settings','preview'].forEach(x=>$('view'+x[0].toUpperCase()+x.slice(1)).classList.toggle('hidden',x!==v));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v||(v==='preview'&&b.dataset.v==='edit')));
+  if(v==='list')renderList();if(v==='settings')loadSettings();if(v==='edit')live();window.scrollTo(0,0);}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>show(b.dataset.v));
+function header(){const inApp=MODE==='app'||MODE==='demo';
+  $('hName').textContent=inApp&&S.settings.name?S.settings.name:APP_NAME;
+  $('hSub').textContent=inApp?(S.settings.sub?S.settings.sub+' · ':'')+APP_NAME:'';
+  $('nav').classList.toggle('hidden',!inApp);syncUI();}
+function refreshViews(){header();buildCatalog();licUI();
+  if(VIEW==='list')renderList();
+  if(VIEW==='edit'&&cur&&cur.isNew&&!dirty()){cur.num=nextNum();cur.proposed=cur.num;$('fNum').value=cur.num;live();}}
+
+/* ===================== Éditeur ===================== */
+function nextNum(){return Math.max(+S.settings.next||1,MODE==='app'&&LIC?+LIC.num_next||1:1);}
+function blank(){const n=nextNum();return{id:uid(),num:n,proposed:n,date:today(),client:'',tel:'',avance:0,lines:[{q:1,d:'',pu:''}],isNew:true};}
+function dirty(){return cur&&(cur.client||cur.lines.some(l=>String(l.d).trim()||num(l.pu)));}
+function load(inv){cur=JSON.parse(JSON.stringify(inv));$('fNum').value=cur.num;$('fDate').value=cur.date;$('fClient').value=cur.client;$('fTel').value=cur.tel;$('fAvance').value=cur.avance||'';renderLines();}
+function renderLines(){
+  $('lines').innerHTML=cur.lines.map((l,i)=>`<div class="line" data-i="${i}">
+    <input class="q" data-k="q" inputmode="decimal" placeholder="Qté" value="${esc(l.q)}">
+    <input class="d" data-k="d" list="articles" placeholder="Désignation" value="${esc(l.d)}">
+    <input class="pu" data-k="pu" inputmode="numeric" placeholder="Prix unitaire" value="${esc(l.pu)}">
+    <div class="tot" id="lt${i}">${fmt(num(l.q)*num(l.pu))} F</div>
+    <button class="x" data-del="${i}" title="Enlever">×</button></div>`).join('');
+  totals();}
+$('lines').addEventListener('input',e=>{const box=e.target.closest('.line');if(!box)return;const i=+box.dataset.i,k=e.target.dataset.k;cur.lines[i][k]=e.target.value;
+  if(k==='d'){const p=priceOf(e.target.value);const puIn=box.querySelector('[data-k=pu]');if(p&&!puIn.value){puIn.value=p;cur.lines[i].pu=p;}}
+  $('lt'+i).textContent=fmt(num(cur.lines[i].q)*num(cur.lines[i].pu))+' F';totals();});
+$('lines').addEventListener('keydown',e=>{if(e.key!=='Enter'||e.target.dataset.k!=='pu')return;const box=e.target.closest('.line');if(+box.dataset.i!==cur.lines.length-1)return;e.preventDefault();$('addLine').click();});
+$('lines').addEventListener('click',e=>{const d=e.target.dataset.del;if(d===undefined)return;cur.lines.splice(+d,1);if(!cur.lines.length)cur.lines.push({q:1,d:'',pu:''});renderLines();});
+$('addLine').onclick=()=>{cur.lines.push({q:1,d:'',pu:''});renderLines();const ins=$('lines').querySelectorAll('[data-k=d]');ins[ins.length-1].focus();};
+function totals(){const t=total(cur),a=num($('fAvance').value);$('gTotal').textContent=fmt(t)+' F';$('gWords').textContent=words(t)+' francs CFA';$('fReste').value=fmt(Math.max(t-a,0))+' F';live();}
+['fNum','fDate','fClient','fTel','fAvance'].forEach(id=>$(id).addEventListener('input',()=>{readTop();if(id==='fAvance')totals();else live();}));
+function readTop(){if(!cur)return;cur.num=parseInt($('fNum').value)||cur.num;cur.date=$('fDate').value;cur.client=$('fClient').value;cur.tel=$('fTel').value;cur.avance=num($('fAvance').value);}
+let liveT=null;
+function live(){if(!matchMedia('(min-width:1100px)').matches||!cur)return;clearTimeout(liveT);liveT=setTimeout(()=>renderSheet($('sheetLive'),cur,true),60);}
+function collect(){readTop();cur.client=cur.client.trim();cur.tel=cur.tel.trim();
+  cur.lines=cur.lines.filter(l=>String(l.d).trim()||num(l.pu));if(!cur.lines.length)cur.lines=[{q:1,d:'',pu:''}];}
+let saving=false,NUMCHG=0;
+async function commit(){if(saving)return false;NUMCHG=0;collect();
+  if(!cur.client){toast('Écris le nom du client.',true);$('fClient').focus();return false;}
+  if(!canEdit()){aboModal();return false;}
+  saving=true;
+  try{const wasNew=cur.isNew;
+    if(wasNew&&MODE==='app'&&SB&&ONLINE&&cur.num===cur.proposed){
+      try{const r=await timeout(SB.rpc('fact_num',{p_min:cur.num}),6000);
+        if(!r.error&&r.data){if(+r.data!==cur.num){NUMCHG=cur.num;cur.num=+r.data;$('fNum').value=cur.num;}if(LIC)LIC.num_next=Math.max(+LIC.num_next||1,cur.num+1);}
+        else if(r.error&&/expir/i.test(r.error.message||'')){await loadCompte();aboModal();return false;}
+        else if(r.error&&isNet(r.error))ONLINE=false;
+      }catch(e){if(isNet(e))ONLINE=false;}}
+    delete cur.isNew;delete cur.proposed;
+    const copy=JSON.parse(JSON.stringify(cur));const i=S.invoices.findIndex(x=>x.id===cur.id);
+    if(i>=0)S.invoices[i]=copy;else S.invoices.unshift(copy);
+    if(wasNew||cur.num>=S.settings.next)S.settings.next=Math.max(+S.settings.next||1,cur.num+1);
+    queue('inv',cur.id,invData(cur));saveLocal();buildCatalog();schedulePush(50);return true;
+  }finally{saving=false;}}
+$('save').onclick=async()=>{if(await commit())toast(NUMCHG?'Enregistrée avec le N° '+pad(cur.num)+' (le N° '+pad(NUMCHG)+' était déjà pris sur un autre appareil) ✅':MODE==='demo'?'Facture N° '+pad(cur.num)+' enregistrée (démo) ✅':ONLINE?'Facture N° '+pad(cur.num)+' enregistrée ✅':'Facture enregistrée : elle part en ligne au retour d\'internet ✅');};
+$('preview').onclick=async()=>{if(await commit()){renderSheet($('sheet'),cur);show('preview');if(NUMCHG)toast('Numéro changé en N° '+pad(cur.num)+' (le N° '+pad(NUMCHG)+' était déjà pris)');}};
+$('newBtn').onclick=()=>{load(blank());live();toast('Nouvelle facture');};
+$('back').onclick=()=>show('edit');
+$('printBtn').onclick=()=>{try{window.print();}catch(e){toast('Impression impossible ici : utilisez le PDF.',true);}};
+
+/* ===================== Catalogue des articles (prix retenus) ===================== */
+let CAT={};
+function buildCatalog(){CAT={};S.invoices.slice().sort((a,b)=>a.num-b.num).forEach(inv=>inv.lines.forEach(l=>{if(String(l.d).trim())CAT[String(l.d).trim().toLowerCase()]={d:String(l.d).trim(),pu:l.pu};}));
+  $('articles').innerHTML=Object.values(CAT).map(c=>`<option value="${esc(c.d)}">${fmt(num(c.pu))} F</option>`).join('');}
+function priceOf(d){const c=CAT[String(d).trim().toLowerCase()];return c?c.pu:'';}
+
+/* ===================== Facture papier ===================== */
+function renderSheet(el,inv,isLive){const s=S.settings,t=total(inv),rest=Math.max(t-num(inv.avance),0);
+  const lines=isLive?inv.lines.filter(l=>String(l.d).trim()||num(l.pu)):inv.lines;
+  el.innerHTML=`<div class="sh-c"><div class="sh-name">${s.name?esc(s.name):'<span class="sh-empty">Nom de la quincaillerie</span>'}</div>${s.sub?`<div class="sh-sub">${esc(s.sub)}</div>`:''}
+  ${s.act?`<div class="sh-line" style="font-weight:700">${esc(s.act)}</div>`:''}${s.tel?`<div class="sh-line"><b>Tél : ${esc(s.tel)}</b></div>`:''}${s.adr?`<div class="sh-line">Adresse : ${esc(s.adr)}</div>`:''}</div>
+  <div class="sh-meta"><div class="sh-fact">FACTURE</div><div style="text-align:right">Date : <b style="color:#111">${frDate(inv.date)}</b><br><span class="sh-num">N° ${pad(inv.num)}</span></div></div>
+  <div class="sh-client">M. <b>${esc(inv.client)}</b>${inv.tel?' &nbsp;·&nbsp; Tél : '+esc(inv.tel):''}</div>
+  <table class="t"><tr><th style="width:12%">Qté</th><th>Désignation</th><th style="width:20%">P. Unit</th><th style="width:22%">P. Total</th></tr>
+  ${lines.map(l=>`<tr><td class="c">${esc(l.q)}</td><td>${esc(l.d)}</td><td class="n">${fmt(num(l.pu))}</td><td class="n">${fmt(num(l.q)*num(l.pu))}</td></tr>`).join('')}
+  <tr class="total"><td colspan="3" style="text-align:right">TOTAL</td><td class="n">${fmt(t)} F</td></tr></table>
+  <div class="sh-words">Arrêtée la présente facture à la somme de : <b>${words(t)} francs CFA</b></div>
+  ${num(inv.avance)?`<div class="sh-pay">Avance : <b>${fmt(inv.avance)} F</b> &nbsp;—&nbsp; Reste à payer : <b>${fmt(rest)} F</b></div>`:''}
+  <div class="sh-sign"><span>Le client</span><span>${esc(s.sub||s.name)}</span></div>`;}
+
+async function shareFile(blob,name,title){
+  const f=new File([blob],name,{type:blob.type});
+  try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title});return;}}catch(e){if(e.name==='AbortError')return;}
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),60000);}
+/* ---- Dessin de la facture sur un canvas (fiable sur iPhone, sans capture d'écran) ---- */
+function drawInvoice(){const s=S.settings,inv=cur,t=total(inv),rest=Math.max(t-num(inv.avance),0);
+  const W=1240,M=60,BLUE='#1f6fd1',DARK='#1a3f8f',INK='#111';
+  const cols=[M,M+120,W-M-420,W-M-210,W-M];
+  const c=document.createElement('canvas'),x=c.getContext('2d');
+  const font=(sz,b)=>x.font=(b?'bold ':'')+sz+'px Arial, Helvetica, sans-serif';
+  const fit=(txt,max,sz,b)=>{font(sz,b);while(x.measureText(txt).width>max&&sz>14){sz--;font(sz,b);}return sz;};
+  const wrap=(txt,max)=>{const w=String(txt).split(' '),out=[];let l='';w.forEach(wd=>{const tt=l?l+' '+wd:wd;if(x.measureText(tt).width>max&&l){out.push(l);l=wd;}else l=tt;});if(l)out.push(l);return out;};
+  font(26);const wl=wrap('Arrêtée la présente facture à la somme de : '+words(t)+' francs CFA',W-2*M);
+  let hy=60;if(s.sub)hy+=62;if(s.act)hy+=s.sub?52:56;if(s.tel)hy+=36;if(s.adr)hy+=34;
+  const RH=54,H=hy+176+RH*(inv.lines.length+2)+wl.length*36+(num(inv.avance)?50:0)+150;
+  c.width=W;c.height=H;x.fillStyle='#fff';x.fillRect(0,0,W,H);x.textBaseline='middle';
+  let y=60;x.textAlign='center';x.fillStyle=DARK;const nm=s.name||' ';fit(nm,W-2*M,50,true);x.fillText(nm,W/2,y);
+  if(s.sub){y+=62;font(30,true);const sw=x.measureText(s.sub).width+60;x.fillStyle=BLUE;
+    x.beginPath();x.roundRect?x.roundRect(W/2-sw/2,y-24,sw,48,24):x.rect(W/2-sw/2,y-24,sw,48);x.fill();x.fillStyle='#fff';x.fillText(s.sub,W/2,y+1);}
+  x.fillStyle=DARK;if(s.act){y+=s.sub?52:56;fit(s.act,W-2*M,26,true);x.fillText(s.act,W/2,y);}
+  if(s.tel){y+=36;fit('Tél : '+s.tel,W-2*M,26,true);x.fillText('Tél : '+s.tel,W/2,y);}
+  if(s.adr){y+=34;fit('Adresse : '+s.adr,W-2*M,25);x.fillText('Adresse : '+s.adr,W/2,y);}
+  y+=60;x.textAlign='left';font(38,true);x.fillText('FACTURE',M,y);x.textAlign='right';font(26);x.fillStyle=INK;x.fillText('Date : '+frDate(inv.date),W-M,y-18);
+  x.fillStyle='#c62828';font(32,true);x.fillText('N° '+pad(inv.num),W-M,y+20);
+  y+=66;x.textAlign='left';x.fillStyle=INK;font(30);const cl='M. '+inv.client+(inv.tel?'   ·   Tél : '+inv.tel:'');fit(cl,W-2*M,30);x.fillText(cl,M,y);
+  x.strokeStyle=DARK;x.setLineDash([4,5]);x.beginPath();x.moveTo(M,y+24);x.lineTo(W-M,y+24);x.stroke();x.setLineDash([]);
+  y+=50;const top=y;
+  x.fillStyle='#e8f1fc';x.fillRect(M,y,W-2*M,RH);x.fillStyle=DARK;font(22,true);
+  ['QTÉ','DÉSIGNATION','P. UNIT','P. TOTAL'].forEach((h,i)=>{x.textAlign='center';x.fillText(h,(cols[i]+cols[i+1])/2,y+RH/2);});
+  y+=RH;x.fillStyle=INK;
+  inv.lines.forEach(l=>{const m=y+RH/2;x.textAlign='center';font(26);x.fillText(String(l.q),(cols[0]+cols[1])/2,m);
+    x.textAlign='left';fit(String(l.d),cols[2]-cols[1]-24,26);x.fillText(String(l.d),cols[1]+12,m);
+    x.textAlign='right';font(26);x.fillText(fmt(num(l.pu)),cols[3]-12,m);x.fillText(fmt(num(l.q)*num(l.pu)),cols[4]-12,m);y+=RH;});
+  x.fillStyle=DARK;font(30,true);x.textAlign='right';x.fillText('TOTAL',cols[3]-12,y+RH/2);x.fillText(fmt(t)+' F',cols[4]-12,y+RH/2);y+=RH;
+  x.strokeStyle='#9dbbe6';x.lineWidth=2;for(let r=top;r<=y;r+=RH){x.beginPath();x.moveTo(M,r);x.lineTo(W-M,r);x.stroke();}
+  cols.forEach((cx,i)=>{x.beginPath();x.moveTo(cx,top);x.lineTo(cx,i>0&&i<3?y-RH:y);x.stroke();});
+  x.strokeStyle=BLUE;x.lineWidth=3;x.strokeRect(M,top,W-2*M,y-top);x.strokeRect(M,y-RH,W-2*M,RH);
+  y+=40;x.textAlign='left';x.fillStyle=INK;font(26);wl.forEach(l=>{x.fillText(l,M,y);y+=36;});
+  if(num(inv.avance)){y+=8;font(27,true);x.fillText('Avance : '+fmt(inv.avance)+' F   —   Reste à payer : '+fmt(rest)+' F',M,y);y+=42;}
+  y+=70;font(24);x.fillText('Le client',M,y);x.textAlign='right';x.fillText(s.sub||s.name||'',W-M,y);
+  return c;}
+function invoiceBlob(type){return new Promise(r=>drawInvoice().toBlob(r,type,0.95));}
+$('pdf').onclick=async()=>{if(!window.jspdf){toast('Il faut internet pour créer le PDF. Envoyez l\'image à la place.',true);return;}
+  try{const c=drawInvoice();const {jsPDF}=window.jspdf;const pdf=new jsPDF({unit:'mm',format:'a4'});
+    const img=c.toDataURL('image/jpeg',0.95),Wm=190,Hm=c.height*Wm/c.width,PH=277;
+    pdf.addImage(img,'JPEG',10,10,Wm,Hm);let left=Hm-PH,pos=10;while(left>0){pos-=PH;pdf.addPage();pdf.addImage(img,'JPEG',10,pos,Wm,Hm);left-=PH;}
+    await shareFile(pdf.output('blob'),'Facture-'+pad(cur.num)+'.pdf','Facture N° '+pad(cur.num));
+  }catch(e){toast('Impossible de créer le PDF ici.',true);}};
+function waNumber(t){let d=String(t||'').replace(/\D/g,'');if(d.startsWith('00'))d=d.slice(2);if(d.length===9&&/^[73]/.test(d))d='221'+d;return d;}
+$('wa').onclick=()=>{const s=S.settings,t=total(cur),rest=Math.max(t-num(cur.avance),0);
+  let m=`*${s.name}*\n${s.sub?s.sub+' — ':''}${s.tel?'Tél : '+s.tel:''}\n\n*FACTURE N° ${pad(cur.num)}* du ${frDate(cur.date)}\nClient : ${cur.client}\n\n`;
+  m+=cur.lines.map(l=>`${l.q} × ${l.d} — ${fmt(num(l.pu))} = ${fmt(num(l.q)*num(l.pu))} F`).join('\n');
+  m+=`\n\n*TOTAL : ${fmt(t)} F CFA*`;if(num(cur.avance))m+=`\nAvance : ${fmt(cur.avance)} F\nReste : ${fmt(rest)} F`;m+=`\n\nMerci pour votre confiance 🙏`;
+  const n=waNumber(cur.tel);window.open('https://wa.me/'+(n||'')+'?text='+encodeURIComponent(m),'_blank');};
+$('shareImg').onclick=async()=>{try{const b=await invoiceBlob('image/png');await shareFile(b,'Facture-'+pad(cur.num)+'.png','Facture N° '+pad(cur.num));}catch(e){toast('Impossible de créer l\'image ici.',true);}};
+
+/* ===================== Liste ===================== */
+function renderList(){const q=$('search').value.trim().toLowerCase();
+  const items=S.invoices.filter(i=>!q||[i.client,i.tel,String(i.num),pad(i.num)].join(' ').toLowerCase().includes(q)).sort((a,b)=>b.num-a.num||String(b.date).localeCompare(String(a.date)));
+  $('sCount').textContent=S.invoices.length;$('sTotal').textContent=fmt(S.invoices.reduce((a,i)=>a+total(i),0));
+  $('sDue').textContent=fmt(S.invoices.reduce((a,i)=>a+Math.max(total(i)-num(i.avance),0),0));
+  $('list').innerHTML=items.length?items.map(i=>{const t=total(i),r=Math.max(t-num(i.avance),0);
+    return`<div class="item" data-id="${esc(i.id)}"><div><b>N° ${pad(i.num)} · ${esc(i.client)}</b><small>${frDate(i.date)} · ${i.lines.length} article(s)</small></div>
+    <div class="amt">${fmt(t)} F<br><span class="tag ${r?'due':'paid'}">${r?'Reste '+fmt(r):'Payée'}</span></div></div>`}).join('')
+    :'<p style="text-align:center;color:#6b7280">'+(q?'Aucune facture trouvée':'Aucune facture pour le moment')+'</p>';}
+$('search').oninput=renderList;
+$('list').onclick=e=>{const it=e.target.closest('.item');if(!it)return;const inv=S.invoices.find(x=>x.id===it.dataset.id);if(!inv)return;
+  const ed=canEdit();
+  modal('Facture N° '+pad(inv.num),inv.client+' — '+fmt(total(inv))+' F',[
+    {t:'🧾 Voir / PDF / envoyer',f:()=>{load(inv);renderSheet($('sheet'),cur);show('preview');}},
+    {t:'✏️ Modifier',c:'light',f:()=>{if(!ed)return aboModal();load(inv);show('edit');}},
+    {t:'✅ Marquer payée',c:'light',f:()=>{if(!ed)return aboModal();inv.avance=total(inv);queue('inv',inv.id,invData(inv));saveLocal();schedulePush(50);renderList();toast('Facture payée ✅');}},
+    {t:'📑 Copier pour un autre client',c:'light',f:()=>{if(!ed)return aboModal();const c=JSON.parse(JSON.stringify(inv));c.id=uid();c.num=nextNum();c.proposed=c.num;c.date=today();c.client='';c.tel='';c.avance=0;c.isNew=true;load(c);show('edit');}},
+    {t:'🗑️ Supprimer',c:'red',f:()=>{if(!ed)return aboModal();ask('Supprimer ?','La facture N° '+pad(inv.num)+' sera effacée.','Oui, supprimer',()=>{S.invoices=S.invoices.filter(x=>x.id!==inv.id);queue('inv',inv.id,null,true);saveLocal();schedulePush(50);buildCatalog();renderList();toast('Facture supprimée');});}}
+  ]);};
+
+/* ===================== Réglages ===================== */
+function loadSettings(){const s=S.settings;$('sName').value=s.name;$('sSub').value=s.sub;$('sAct').value=s.act;$('sTel').value=s.tel;$('sAdr').value=s.adr;$('sNext').value=nextNum();renderAccCards();}
+function renderAccCards(){const ab=$('aboCard'),ac=$('accCard');
+  if(MODE==='demo'){ab.innerHTML='<div class="ctitle">Démo</div><div class="hint" style="margin-top:0">Ici rien n\'est enregistré en ligne. Avec un compte, les factures sont gardées en ligne et vous les retrouvez sur le téléphone et sur l\'ordinateur.</div><button class="btn" data-act="signupFromDemo">Créer mon compte</button>';
+    ac.innerHTML='<button class="btn light" data-act="exitDemo">Quitter la démo</button>';return;}
+  ab.innerHTML=LIC?aboHTML():'<div class="ctitle">Mon abonnement</div><div class="hint" style="margin-top:0">Connectez-vous à internet pour voir votre abonnement.</div><button class="btn light" data-act="checkAbo">🔄 Vérifier</button>';
+  ac.innerHTML=`<div class="ctitle">Mon compte</div><div class="hint" style="margin-top:0">Numéro : <b>${esc(fTel((LIC&&LIC.phone)||(USER&&USER.email||'').split('@')[0]))}</b><br>Le même numéro et mot de passe marchent sur le téléphone et sur l'ordinateur.</div>
+    <button class="btn light" data-act="logout">Se déconnecter</button><button class="btn red" data-act="delAcc">Supprimer mon compte</button>`;}
+$('saveSettings').onclick=async()=>{const nx=parseInt($('sNext').value)||0;
+  if(MODE==='app'&&!canEdit())return aboModal();
+  Object.assign(S.settings,pickSet({name:$('sName').value.trim(),sub:$('sSub').value.trim(),act:$('sAct').value.trim(),tel:$('sTel').value.trim(),adr:$('sAdr').value.trim()}));
+  queue('set','main',pickSet(S.settings));
+  if(nx>0&&nx!==nextNum()){
+    if(MODE==='app'){if(!SB||!ONLINE){toast('Pour changer le numéro il faut internet. L\'en-tête est enregistré.',true);}
+      else{try{const r=await timeout(SB.rpc('fact_num_set',{p_next:nx}),10000);if(r.error)throw r.error;LIC.num_next=nx;S.settings.next=nx;}catch(e){toast('Numéro pas changé : '+(isNet(e)?'pas d\'internet':e.message),true);}}}
+    else S.settings.next=nx;}
+  saveLocal();schedulePush(50);header();licUI();if(cur&&cur.isNew){cur.num=nextNum();cur.proposed=cur.num;$('fNum').value=cur.num;}live();toast('Réglages enregistrés ✅');};
+$('exportBtn').onclick=()=>shareFile(new Blob([JSON.stringify({app:APP_NAME,settings:S.settings,invoices:S.invoices},null,1)],{type:'application/json'}),'sauvegarde-factures-'+today()+'.json','Sauvegarde factures');
+$('importFile').onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const r=new FileReader();
+  r.onload=()=>{let d;try{d=JSON.parse(r.result);if(!Array.isArray(d.invoices)||!d.settings)throw 0;}catch(x){toast('Fichier non valide',true);return;}
+    if(MODE==='app'&&!canEdit())return aboModal();
+    const invs=d.invoices.map(normInv).filter(Boolean);const set=pickSet(d.settings);
+    ask('Importer ?',invs.length+' facture(s) seront ajoutées à votre compte'+(set.name?' et l\'en-tête « '+set.name+' » sera repris':'')+'.\nLes factures déjà dans l\'app ne sont pas effacées.','Oui, importer',async()=>{
+      invs.forEach(inv=>{const i=S.invoices.findIndex(x=>x.id===inv.id);if(i>=0)S.invoices[i]=inv;else S.invoices.push(inv);queue('inv',inv.id,invData(inv));});
+      if(set.name){S.settings=Object.assign({},S.settings,set);queue('set','main',set);}
+      const mx=Math.max(parseInt(d.settings.next)||0,...invs.map(i=>i.num+1),nextNum());S.settings.next=mx;
+      saveLocal();header();buildCatalog();licUI();toast('Import en cours…');await push();
+      if(MODE==='app'&&SB&&ONLINE&&LIC&&mx>(+LIC.num_next||1)){try{const r=await SB.rpc('fact_num_set',{p_next:mx});if(!r.error)LIC.num_next=mx;}catch(x){}}
+      load(blank());toast(invs.length+' facture(s) importée(s) ✅');show('list');});};
+  r.readAsText(f);};
+
+/* ===================== Connexion ===================== */
+let authMode='login';
+const essaiTxt=()=>today()<='2027-01-31'?'1 mois d\'essai gratuit (offre de lancement)':'14 jours d\'essai gratuit';
+function setAuth(m){authMode=m;const su=m==='signup';document.querySelectorAll('.seg button').forEach(b=>b.classList.toggle('on',b.dataset.a===m));
+  $('auNomBox').classList.toggle('hidden',!su);$('auPw2Box').classList.toggle('hidden',!su);$('auInfo').classList.toggle('hidden',!su);
+  $('auInfo').innerHTML='🎁 '+essaiTxt()+', puis '+fmt(PRIX_DEF)+' F par mois.<br>Notez bien le mot de passe : il sert pour ouvrir l\'app sur chaque téléphone et ordinateur.';
+  $('auPw').autocomplete=su?'new-password':'current-password';$('auBtn').textContent=su?'Créer mon compte':'Se connecter';$('auMsg').textContent='';}
+document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>setAuth(b.dataset.a));
+const phoneDigits=v=>{let d=String(v||'').replace(/\D/g,'');if(d.startsWith('00'))d=d.slice(2);if(d.length===9)d='221'+d;return d;};
+$('auForm').onsubmit=async e=>{e.preventDefault();const su=authMode==='signup',ph=phoneDigits($('auTel').value),pw=$('auPw').value,say=t=>$('auMsg').textContent=t;
+  if(ph.length<11||ph.length>15)return say('Numéro de téléphone invalide');if(pw.length<6)return say('Le mot de passe doit avoir au moins 6 caractères');
+  if(su&&pw!==$('auPw2').value)return say('Les deux mots de passe ne sont pas pareils');
+  if(su&&!$('auNom').value.trim())return say('Écrivez le nom de la quincaillerie');
+  if(!SB)return say('Pas de connexion internet : réessayez');
+  const b=$('auBtn');b.disabled=true;b.textContent=su?'Création…':'Connexion…';say('');
+  try{const r=su?await SB.auth.signUp({email:ph+MAIL_DOM,password:pw}):await SB.auth.signInWithPassword({email:ph+MAIL_DOM,password:pw});
+    if(r.error)throw r.error;if(!r.data.session)throw new Error('Compte créé mais pas encore actif. Écrivez à Seck Apps sur WhatsApp.');
+    USER=r.data.session.user;MODE='app';try{localStorage.setItem(K_LAST,USER.id);}catch(x){}
+    loadLocal();
+    const c=await SB.rpc('fact_inscription',{p_set:su?{name:$('auNom').value.trim().toUpperCase()}:{}});if(c.error)throw c.error;
+    LIC=c.data;ONLINE=true;S.settings.next=Math.max(+S.settings.next||1,+LIC.num_next||1);saveLocal();
+    await pull();enterApp(su?'settings':'edit');
+    toast(su?'Compte créé ✅ Complétez l\'en-tête de vos factures':'Connecté ✅');
+  }catch(err){const m=String(err&&err.message||'');
+    say(/already|registered|exists/i.test(m)?'Ce numéro a déjà un compte : touchez « Se connecter »':/invalid login|credentials/i.test(m)?'Numéro ou mot de passe faux':isNet(err)?'Pas de connexion internet : réessayez':m);
+    if(MODE==='app'&&!LIC){MODE='account';try{await SB.auth.signOut();}catch(x){}}
+  }finally{b.disabled=false;b.textContent=su?'Créer mon compte':'Se connecter';}};
+$('forgot').onclick=()=>{const ph=$('auTel').value.trim();window.open('https://wa.me/'+SECK_WA+'?text='+encodeURIComponent('Bonjour Seck Apps, j\'ai oublié mon mot de passe '+APP_NAME+'.'+(ph?'\nMon numéro : '+ph:'')),'_blank');};
+$('demoBtn').onclick=()=>startDemo();
+
+function showAccount(msg){MODE='account';USER=null;LIC=null;header();licUI();$('accLoading').classList.add('hidden');$('accBox').classList.remove('hidden');show('account');if(msg)$('auMsg').textContent=msg;}
+function enterApp(view){header();buildCatalog();load(blank());licUI();show(view||'edit');}
+function startDemo(){MODE='demo';try{localStorage.setItem(K_MODE,'demo');}catch(e){}
+  loadLocal();if(!S.invoices.length){S=JSON.parse(JSON.stringify(DEMO));const d=new Date();S.invoices.forEach((inv,i)=>{const x=new Date(d.getTime()-(i*3+1)*86400000);inv.date=x.toISOString().slice(0,10);});saveLocal();}
+  enterApp('edit');}
+function exitDemo(signup){try{localStorage.removeItem(K_MODE);}catch(e){}closeModal();showAccount();if(signup)setAuth('signup');}
+async function logout(){const n=Object.keys(PEND).length;
+  const go=async()=>{try{if(SB)await SB.auth.signOut();}catch(e){}try{localStorage.removeItem(K_LAST);if(!Object.keys(PEND).length)localStorage.removeItem(cacheKey());}catch(e){}location.href=location.href.split(/[?#]/)[0];};
+  if(n)ask('Se déconnecter ?',n+' changement(s) ne sont pas encore partis en ligne (pas d\'internet). Si vous vous déconnectez maintenant, ils restent seulement sur cet appareil.','Me déconnecter quand même',go);else go();}
+function delAccount(){ask('Supprimer le compte ?','Le compte et TOUTES les factures seront effacés pour toujours. Faites d\'abord « Exporter toutes les factures » si vous voulez les garder.','Oui, tout supprimer',async()=>{
+  try{const r=await SB.rpc('seck_supprimer_mon_compte');if(r.error)throw r.error;try{localStorage.removeItem(cacheKey());localStorage.removeItem(K_LAST);}catch(e){}try{await SB.auth.signOut();}catch(e){}location.href=location.href.split(/[?#]/)[0];}
+  catch(e){toast(isNet(e)?'Pas de connexion internet':String(e.message||e),true);}});}
+
+/* ===================== Démarrage ===================== */
+function ensureLib(){if(window.supabase)return Promise.resolve(true);return new Promise(res=>{const x=document.createElement('script');x.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js';x.onload=()=>res(!!window.supabase);x.onerror=()=>res(false);document.head.appendChild(x);});}
+function makeSB(){if(!SB&&window.supabase)SB=window.supabase.createClient(SUPA_URL,SUPA_KEY,{auth:{persistSession:true,autoRefreshToken:true,storageKey:'terangaFacture.auth'}});return SB;}
+async function boot(){
+  let m='';try{m=localStorage.getItem(K_MODE)||'';}catch(e){}
+  const q=new URLSearchParams(location.search);
+  if(m==='demo'||q.has('demo')){startDemo();return;}
+  const t0=Date.now();while(!window.supabase&&Date.now()-t0<8000)await new Promise(r=>setTimeout(r,150));
+  makeSB();
+  let last='';try{last=localStorage.getItem(K_LAST)||'';}catch(e){}
+  if(SB){try{const{data}=await timeout(SB.auth.getSession(),8000);USER=data&&data.session?data.session.user:null;}catch(e){USER=null;}}
+  if(!USER&&last&&!navigator.onLine){USER={id:last,email:''};}   // hors ligne : on ouvre avec les factures gardées sur l'appareil
+  if(!USER){showAccount(SB?'':'Pas de connexion internet');if(q.has('inscription'))setAuth('signup');return;}
+  MODE='app';try{localStorage.setItem(K_LAST,USER.id);}catch(e){}
+  loadLocal();ONLINE=navigator.onLine!==false;enterApp('edit');
+  if(SB){await loadCompte();await pull();push();refreshViews();}
+}
+setInterval(()=>{if(MODE==='app'&&document.visibilityState==='visible'){pull();push();}},60000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&MODE==='app'){loadCompte();pull();push();}});
+window.addEventListener('online',async()=>{ONLINE=true;if(MODE!=='app')return;if(!SB&&await ensureLib())makeSB();
+  if(SB&&USER&&!USER.email){try{const{data}=await SB.auth.getSession();if(data&&data.session)USER=data.session.user;else{showAccount('Reconnectez-vous : vos factures gardées sur cet appareil seront envoyées après la connexion.');return;}}catch(e){}}
+  await loadCompte();pull();push();});
+window.addEventListener('offline',()=>{ONLINE=false;syncUI();});
+window.addEventListener('resize',()=>{if(VIEW==='edit')live();});
+if('serviceWorker' in navigator&&location.protocol==='https:'){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+boot();
+</script>
+</body>
+</html>
